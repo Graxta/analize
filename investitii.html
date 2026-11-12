@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Analiză investiții</title>
+<style>
+:root{--bg:#f4f5f7;--card:#fff;--text:#14181f;--muted:#5b6472;--line:#dfe3e8;--accent:#1f5eff;--accent-text:#fff;--chip:#e9ecf1;--hi:#12805c;--hi-bg:#dff5ec;--mid:#8a5a00;--mid-bg:#fdefc8;--low:#b3261e;--low-bg:#fde4e2;--up:#12805c;--down:#c62f2f}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1216;--card:#191e25;--text:#f1f3f6;--muted:#9aa4b2;--line:#2a313b;--accent:#5b8cff;--accent-text:#0b1020;--chip:#232a33;--hi:#5fd3a6;--hi-bg:#143528;--mid:#f1c463;--mid-bg:#3b2f10;--low:#ff8d87;--low-bg:#421b19;--up:#5fd3a6;--down:#ff8d87}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/20px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:800px;margin:0 auto;padding:24px 16px 48px}
+.back{display:inline-flex;align-items:center;min-height:40px;color:var(--accent);text-decoration:none;font-weight:600}
+h1{font-size:24px;line-height:32px;margin:0 0 8px}
+.sub{margin:0 0 24px;color:var(--muted)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:8px;scrollbar-width:thin}
+.chip{flex:none;height:40px;padding:0 16px;border:0;border-radius:8px;background:var(--chip);color:var(--text);font:inherit;font-weight:600;cursor:pointer;white-space:nowrap}
+.chip[aria-pressed=true]{background:var(--accent);color:var(--accent-text)}
+.chip:focus-visible,summary:focus-visible,.btn:focus-visible,.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.filters{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;margin:8px 0 16px}
+.glabel{display:block;font-size:12px;line-height:16px;color:var(--muted);font-weight:600;margin-bottom:8px}
+.hint{margin:0;color:var(--muted);font-size:12px;line-height:16px}
+#summary{margin:0 0 16px;color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:24px}
+.meta{display:flex;justify-content:space-between;gap:16px;font-size:12px;line-height:16px;color:var(--muted);margin-bottom:8px}
+.name{font-size:16px;line-height:24px;font-weight:600;margin:0 0 8px}
+.price{color:var(--muted);margin:0 0 16px}
+.spark{display:block;width:100%;height:48px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:0 0 16px}
+.grid div{min-width:0}
+.grid dt{font-size:12px;line-height:16px;color:var(--muted)}
+.grid dd{margin:0;font-size:16px;line-height:24px;font-weight:600}
+.up{color:var(--up)}.down{color:var(--down)}
+.pick{display:flex;align-items:center;gap:16px;padding:16px;border-radius:8px;background:var(--bg);margin-bottom:8px}
+.pick .txt{flex:1;min-width:0}
+.pick .lbl{display:block;font-size:12px;line-height:16px;color:var(--muted)}
+.pct{font-size:24px;line-height:32px;font-weight:700}
+.badge{display:inline-block;margin-top:8px;padding:4px 8px;border-radius:4px;font-size:12px;line-height:16px;font-weight:600}
+.badge.hi{color:var(--hi);background:var(--hi-bg)}.badge.mid{color:var(--mid);background:var(--mid-bg)}.badge.low{color:var(--low);background:var(--low-bg)}
+summary{cursor:pointer;min-height:40px;display:flex;align-items:center;font-weight:600;color:var(--accent)}
+.why{margin:8px 0 0;padding-left:16px}
+.why li{margin-bottom:8px}
+.state{background:var(--card);border:1px dashed var(--line);border-radius:8px;padding:32px 16px;text-align:center;color:var(--muted)}
+.btn{margin-top:16px;height:40px;padding:0 16px;border:0;border-radius:8px;background:var(--accent);color:var(--accent-text);font:inherit;font-weight:600;cursor:pointer}
+footer{margin-top:32px;color:var(--muted);font-size:12px;line-height:16px}
+footer p{margin:0 0 8px}
+@media (min-width:640px){.wrap{padding:32px 24px 48px}.grid{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a class="back" href="index.html">‹ Toate analizele</a>
+<h1>Analiză investiții</h1>
+<p class="sub">Clasamente după randament, risc și trend pentru ETF-uri, BVB, acțiuni SUA, aur și criptomonede.</p>
+<nav id="cats" class="chips" aria-label="Categorie"></nav>
+<section class="filters">
+<span class="glabel">Ce contează mai mult în scor</span><div id="profiles" class="chips"></div>
+<p class="hint" id="profileHint"></p>
+</section>
+<section class="filters">
+<span class="glabel">Ordonare</span><div id="sorts" class="chips"></div>
+</section>
+<p id="summary"></p>
+<main id="list"></main>
+<footer>
+<p>Scorul este un clasament statistic din prețurile trecute, nu o recomandare de investiții. Randamentele trecute nu garantează randamente viitoare.</p>
+<p>Randamentele includ dividendele acolo unde sursa le raportează și sunt în moneda de listare, fără comisioane, impozite sau curs valutar.</p>
+<p>Date: Yahoo Finance (sursă neoficială), actualizate automat zilnic.</p>
+</footer>
+</div>
+<script>
+const CATS={toate:'Toate',etf:'ETF-uri',bvb:'BVB',sua:'Acțiuni SUA',aur:'Aur',cripto:'Cripto'};
+const PROFILES={
+echilibrat:{label:'Echilibrat',w:{mom:.4,low:.35,trend:.25,div:0},hint:'Randament, risc mic și trend, în proporții apropiate.'},
+crestere:{label:'Creștere',w:{mom:.6,low:.1,trend:.3,div:0},hint:'Contează mai ales randamentul din ultimele 6–12 luni și trendul.'},
+prudent:{label:'Risc mic',w:{mom:.2,low:.6,trend:.2,div:0},hint:'Contează mai ales variațiile mici de preț și căderile mici.'},
+dividende:{label:'Dividende',w:{mom:0,low:.3,trend:.2,div:.5},hint:'Contează mai ales dividendele plătite în ultimele 12 luni.'}};
+const SORTS={score:'Scor',r1y:'Randament 1 an',vol:'Risc mic',dy:'Dividend'};
+const state={cat:'toate',profile:'echilibrat',sort:'score'};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nf=(x,d=1)=>x.toLocaleString('ro-RO',{minimumFractionDigits:d,maximumFractionDigits:d});
+const pct=(x,sign=true)=>x==null?'–':(sign&&x>0?'+':'')+nf(x*100)+'%';
+const cls=x=>x==null?'':x>=0?'up':'down';
+let data=null;
+function chips(id,items,cur,on){
+  $(id).innerHTML=items.map(([v,l])=>`<button class="chip" type="button" data-v="${esc(v)}" aria-pressed="${v===cur}">${esc(l)}</button>`).join('');
+  $(id).onclick=ev=>{const b=ev.target.closest('.chip');if(b)on(b.dataset.v)};
+}
+function controls(){
+  chips('cats',Object.entries(CATS),state.cat,v=>{state.cat=v;controls();draw()});
+  chips('profiles',Object.entries(PROFILES).map(([k,p])=>[k,p.label]),state.profile,v=>{state.profile=v;controls();draw()});
+  chips('sorts',Object.entries(SORTS),state.sort,v=>{state.sort=v;controls();draw()});
+  $('profileHint').textContent=PROFILES[state.profile].hint;
+}
+function rank(all,key,v){if(v==null)return null;const xs=all.map(a=>a[key]).filter(x=>x!=null);if(!xs.length)return null;return xs.filter(x=>x<=v).length/xs.length}
+const avg=xs=>{const v=xs.filter(x=>x!=null);return v.length?v.reduce((s,x)=>s+x,0)/v.length:null};
+function score(all){
+  const w=PROFILES[state.profile].w;
+  all.forEach(a=>{
+    a.mom=avg([rank(all,'r6m',a.r6m),rank(all,'r1y',a.r1y)]);
+    const rv=rank(all,'vol',a.vol),rd=rank(all,'mdd',a.mdd);
+    a.low=avg([rv==null?null:1-rv,rd]);
+    a.trend=a.ma200==null?null:Math.max(0,Math.min(1,.5+a.ma200*5));
+    a.div=rank(all,'dy',a.dy);
+    let s=0,t=0;for(const k of ['mom','low','trend','div'])if(w[k]&&a[k]!=null){s+=w[k]*a[k];t+=w[k]}
+    a.score=t?Math.round(100*s/t):null;
+    a.partial=a.r1y==null||a.ma200==null;
+    a.signal=a.score==null?['mid','Date insuficiente']:a.partial?['mid','Istoric prea scurt']:a.score>=65&&(a.ma200==null||a.ma200>0)?['hi','Semnal favorabil']:a.score<40||(a.ma200!=null&&a.ma200<-.05)?['low','Semnal nefavorabil']:['mid','Semnal neutru'];
+  });
+}
+function spark(a){
+  const s=a.spark||[];if(s.length<2)return'';
+  const mn=Math.min(...s),mx=Math.max(...s),r=mx-mn||1;
+  const pts=s.map((v,i)=>`${(i/(s.length-1)*100).toFixed(1)},${(46-(v-mn)/r*44).toFixed(1)}`).join(' ');
+  return `<svg class="spark" viewBox="0 0 100 48" preserveAspectRatio="none" role="img" aria-label="Evoluția prețului în ultimul an"><polyline points="${pts}" fill="none" stroke="var(--${s[s.length-1]>=s[0]?'up':'down'})" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`;
+}
+function why(a,all){
+  const out=[],n=all.length,better=(k,v,inv)=>{const r=rank(all,k,v);return r==null?'':` (mai bine decât ${Math.round((inv?1-r:r)*100)}% din listă)`};
+  if(a.r1y!=null)out.push(`Randament în ultimul an: ${pct(a.r1y)}${better('r1y',a.r1y)}.`);else out.push('Istoric mai scurt de un an: scor calculat din mai puține date.');
+  if(a.vol!=null)out.push(`Volatilitate anuală ${pct(a.vol,false)}: ${a.vol<.15?'variații mici de preț':a.vol<.3?'variații medii de preț':'variații mari de preț'}.`);
+  if(a.mdd!=null)out.push(`Cea mai mare cădere din ultimul an: ${pct(a.mdd)}.`);
+  if(a.ma200!=null)out.push(`Preț cu ${pct(Math.abs(a.ma200),false)} ${a.ma200>=0?'peste':'sub'} media ultimelor 200 de zile: trend ${a.ma200>=0?'ascendent':'descendent'}.`);
+  out.push(a.dy>0?`Dividende în ultimele 12 luni: ${pct(a.dy,false)} din preț.`:'Fără dividende raportate în ultimele 12 luni (sau le reinvestește automat).');
+  return out;
+}
+function draw(){
+  if(!data)return;
+  const all=data.assets;score(all);
+  const rows=all.filter(a=>state.cat==='toate'||a.cat===state.cat);
+  const key={score:a=>(a.score??-1)-(a.partial?1000:0),r1y:a=>a.r1y??-9,vol:a=>-(a.vol??9),dy:a=>a.dy??-1}[state.sort];
+  rows.sort((x,y)=>key(y)-key(x));
+  const up=new Date(data.updated);
+  $('summary').textContent=`${rows.length} active · actualizat ${up.toLocaleDateString('ro-RO',{day:'numeric',month:'long'})}, ${up.toLocaleTimeString('ro-RO',{hour:'2-digit',minute:'2-digit'})}`+(data.failed?.length?` · ${data.failed.length} fără date`:'');
+  if(!rows.length){$('list').innerHTML='<div class="state">Nicio valoare în această categorie.</div>';return}
+  $('list').innerHTML=rows.map((a,i)=>`<article class="card">
+<div class="meta"><span>${esc(CATS[a.cat]||a.cat)} · ${esc(a.t)}</span><span>locul ${i+1}</span></div>
+<h2 class="name">${esc(a.name)}</h2>
+<p class="price">${nf(a.price,a.price<10?4:2)} ${esc(a.cur)} la ${new Date(a.date).toLocaleDateString('ro-RO',{day:'numeric',month:'short'})}</p>
+${spark(a)}
+<dl class="grid">
+<div><dt>1 lună</dt><dd class="${cls(a.r1m)}">${pct(a.r1m)}</dd></div>
+<div><dt>6 luni</dt><dd class="${cls(a.r6m)}">${pct(a.r6m)}</dd></div>
+<div><dt>1 an</dt><dd class="${cls(a.r1y)}">${pct(a.r1y)}</dd></div>
+<div><dt>Volatilitate</dt><dd>${pct(a.vol,false)}</dd></div>
+<div><dt>Cădere maximă</dt><dd>${pct(a.mdd)}</dd></div>
+<div><dt>Față de media 200 zile</dt><dd class="${cls(a.ma200)}">${pct(a.ma200)}</dd></div>
+<div><dt>Dividend 12 luni</dt><dd>${a.dy>0?pct(a.dy,false):'–'}</dd></div>
+</dl>
+<div class="pick"><div class="txt"><span class="lbl">Scor ${esc(PROFILES[state.profile].label.toLowerCase())}, din 100</span><span class="badge ${a.signal[0]}">${a.signal[1]}</span></div><div class="pct">${a.score??'–'}</div></div>
+<details><summary>De ce acest scor</summary><ul class="why">${why(a,all).map(r=>`<li>${esc(r)}</li>`).join('')}</ul></details>
+</article>`).join('');
+}
+async function load(){
+  controls();$('list').innerHTML='<div class="state">Se încarcă datele de piață…</div>';
+  try{
+    const r=await fetch('data/market.json?d='+new Date().toISOString().slice(0,13));
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    data=await r.json();draw();
+  }catch(e){
+    $('summary').textContent='';
+    $('list').innerHTML='<div class="state">Datele de piață nu sunt disponibile încă. Încearcă din nou peste câteva minute.<br><button class="btn" type="button" id="retry">Încearcă din nou</button></div>';
+    $('retry').onclick=load;
+  }
+}
+load();
+</script>
+</body>
+</html>
