@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Analiză pariuri</title>
+<style>
+:root{--bg:#f4f5f7;--card:#fff;--text:#14181f;--muted:#5b6472;--line:#dfe3e8;--accent:#1f5eff;--accent-text:#fff;--chip:#e9ecf1;--hi:#12805c;--hi-bg:#dff5ec;--mid:#8a5a00;--mid-bg:#fdefc8;--low:#5b6472;--low-bg:#e9ecf1;--s1:#1f5eff;--s2:#98a2b3;--s3:#e5484d}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1216;--card:#191e25;--text:#f1f3f6;--muted:#9aa4b2;--line:#2a313b;--accent:#5b8cff;--accent-text:#0b1020;--chip:#232a33;--hi:#5fd3a6;--hi-bg:#143528;--mid:#f1c463;--mid-bg:#3b2f10;--low:#9aa4b2;--low-bg:#232a33;--s1:#5b8cff;--s2:#6b7686;--s3:#ff7b7f}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/20px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:800px;margin:0 auto;padding:24px 16px 48px}
+h1{font-size:24px;line-height:32px;margin:0 0 8px}
+.sub{margin:0 0 24px;color:var(--muted)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:8px;scrollbar-width:thin}
+.chip{flex:none;height:40px;padding:0 16px;border:0;border-radius:8px;background:var(--chip);color:var(--text);font:inherit;font-weight:600;cursor:pointer;white-space:nowrap}
+.chip[aria-pressed=true]{background:var(--accent);color:var(--accent-text)}
+.chip:focus-visible,summary:focus-visible,.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.filters{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;margin:8px 0 16px}
+.glabel{display:block;font-size:12px;line-height:16px;color:var(--muted);font-weight:600;margin-bottom:8px}
+.check{display:flex;align-items:center;gap:8px;min-height:40px;cursor:pointer}
+.check input{width:16px;height:16px;margin:0}
+#summary{margin:0 0 16px;color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:24px}
+.meta{display:flex;justify-content:space-between;gap:16px;font-size:12px;line-height:16px;color:var(--muted);margin-bottom:8px}
+.teams{display:grid;gap:8px;margin-bottom:16px}
+.team{display:flex;align-items:center;gap:8px;font-size:16px;line-height:24px;font-weight:600}
+.team img{width:24px;height:24px;object-fit:contain}
+.team .tag{font-size:12px;line-height:16px;font-weight:400;color:var(--muted);margin-left:auto}
+.bar{display:flex;height:24px;border-radius:4px;overflow:hidden;margin-bottom:8px}
+.bar span{display:block;color:#fff;font-size:12px;line-height:24px;text-align:center;font-weight:600;overflow:hidden}
+.b1{background:var(--s1)}.b2{background:var(--s2)}.b3{background:var(--s3)}
+.legend{display:flex;justify-content:space-between;font-size:12px;line-height:16px;color:var(--muted);margin-bottom:16px}
+.pick{display:flex;align-items:center;gap:16px;padding:16px;border-radius:8px;background:var(--bg);margin-bottom:8px}
+.pick .txt{flex:1;min-width:0}
+.pick .lbl{display:block;font-size:12px;line-height:16px;color:var(--muted)}
+.pick strong{display:block;font-size:16px;line-height:24px}
+.pct{font-size:24px;line-height:32px;font-weight:700}
+.badge{display:inline-block;margin-top:8px;padding:4px 8px;border-radius:4px;font-size:12px;line-height:16px;font-weight:600}
+.badge.hi{color:var(--hi);background:var(--hi-bg)}.badge.mid{color:var(--mid);background:var(--mid-bg)}.badge.low{color:var(--low);background:var(--low-bg)}
+summary{cursor:pointer;min-height:40px;display:flex;align-items:center;font-weight:600;color:var(--accent)}
+.why{margin:8px 0 16px;padding-left:16px}
+.why li{margin-bottom:8px}
+.mk{display:grid;grid-template-columns:1fr auto;gap:8px 16px;margin:0}
+.mk dt{color:var(--muted)}.mk dd{margin:0;font-weight:600;text-align:right}
+.mk h4{grid-column:1/-1;margin:8px 0 0;font-size:12px;line-height:16px;color:var(--muted)}
+.state{background:var(--card);border:1px dashed var(--line);border-radius:8px;padding:32px 16px;text-align:center;color:var(--muted)}
+.btn{margin-top:16px;height:40px;padding:0 16px;border:0;border-radius:8px;background:var(--accent);color:var(--accent-text);font:inherit;font-weight:600;cursor:pointer}
+footer{margin-top:32px;color:var(--muted);font-size:12px;line-height:16px}
+footer p{margin:0 0 8px}
+@media (min-width:640px){.wrap{padding:32px 24px 48px}.teams{grid-template-columns:1fr 1fr;gap:16px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Analiză pariuri</h1>
+<p class="sub">Sugestii calculate din clasamente, goluri și formă. Fără cote.</p>
+<nav id="sports" class="chips" aria-label="Sport"></nav>
+<nav id="days" class="chips" aria-label="Zi"></nav>
+<section class="filters">
+<span class="glabel">Tip sugestie</span><div id="cats" class="chips"></div>
+<span class="glabel">Probabilitate minimă</span><div id="mins" class="chips"></div>
+<span class="glabel">Ordonare</span><div id="sorts" class="chips"></div>
+<label class="check" id="othersRow"><input type="checkbox" id="others"> Include și competițiile fără clasament (analiză mai slabă)</label>
+</section>
+<p id="summary"></p>
+<main id="list"></main>
+<footer>
+<p>Probabilitățile sunt estimări statistice din clasament, goluri marcate și primite și forma recentă. Nu țin cont de accidentări, suspendări, loturi sau miza meciului.</p>
+<p>O probabilitate mare nu înseamnă un pariu rentabil: variantele foarte probabile au de obicei cote mici. Pariază doar bani pe care îți permiți să îi pierzi.</p>
+<p>Date: ESPN (sursă neoficială, se poate schimba).</p>
+</footer>
+</div>
+<script>
+const SITE='https://site.api.espn.com/apis/site/v2/sports/';
+const STAND='https://site.api.espn.com/apis/v2/sports/';
+const SPORTS={
+soccer:{label:'Fotbal',type:'soccer'},
+tennis:{label:'Tenis',type:'tennis'},
+nba:{label:'Baschet NBA',type:'us',path:'basketball/nba',exp:13.9,k:8,home:0.30,unit:'puncte'},
+nhl:{label:'Hochei NHL',type:'us',path:'hockey/nhl',exp:2.05,k:10,home:0.20,unit:'goluri'},
+nfl:{label:'Fotbal american NFL',type:'us',path:'football/nfl',exp:2.37,k:4,home:0.24,unit:'puncte'},
+mlb:{label:'Baseball MLB',type:'us',path:'baseball/mlb',exp:1.83,k:20,home:0.16,unit:'puncte'}};
+const LEAGUES=[['eng.1','Anglia · Premier League'],['eng.2','Anglia · Championship'],['esp.1','Spania · La Liga'],['esp.2','Spania · Liga 2'],['ita.1','Italia · Serie A'],['ita.2','Italia · Serie B'],['ger.1','Germania · Bundesliga'],['ger.2','Germania · 2. Bundesliga'],['fra.1','Franța · Ligue 1'],['fra.2','Franța · Ligue 2'],['ned.1','Olanda · Eredivisie'],['por.1','Portugalia · Primeira Liga'],['bel.1','Belgia · Pro League'],['tur.1','Turcia · Süper Lig'],['sco.1','Scoția · Premiership'],['gre.1','Grecia · Super League'],['rou.1','România · Superliga'],['aut.1','Austria · Bundesliga'],['sui.1','Elveția · Super League'],['den.1','Danemarca · Superliga'],['swe.1','Suedia · Allsvenskan'],['nor.1','Norvegia · Eliteserien'],['rus.1','Rusia · Premier Liga'],['uefa.champions','Liga Campionilor'],['uefa.europa','Europa League'],['uefa.europa.conf','Conference League'],['uefa.nations','Liga Națiunilor'],['fifa.worldq.uefa','Calificări CM · Europa'],['usa.1','SUA · MLS'],['mex.1','Mexic · Liga MX'],['bra.1','Brazilia · Serie A'],['arg.1','Argentina · Liga Profesional'],['ksa.1','Arabia Saudită · Pro League']];
+const state={sport:'soccer',day:0,cat:'smart',min:60,sort:'p',others:false};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pc=p=>Math.round(p*100)+'%';
+const num=(x,d=2)=>x.toFixed(d).replace('.',',');
+const mem=new Map();
+async function getJSON(url,ttl=300000){
+  const c=mem.get(url);if(c&&Date.now()-c.t<ttl)return c.v;
+  const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),20000);
+  try{const r=await fetch(url,{signal:ctl.signal});if(!r.ok)throw new Error('HTTP '+r.status);const v=await r.json();mem.set(url,{t:Date.now(),v});return v}
+  finally{clearTimeout(to)}
+}
+async function pool(items,n,fn){const out=[];let i=0;await Promise.all(Array.from({length:n},async()=>{while(i<items.length){const k=i++;try{out[k]=await fn(items[k])}catch(e){out[k]=null}}}));return out}
+function lsGet(k){try{const o=JSON.parse(localStorage.getItem('ap_v2_'+k));if(o&&Date.now()-o.t<3*3600e3)return o.v}catch(e){}return null}
+function lsSet(k,v){try{localStorage.setItem('ap_v2_'+k,JSON.stringify({t:Date.now(),v}))}catch(e){}}
+function entries(node,acc=[]){if(!node)return acc;(node.standings?.entries||[]).forEach(e=>acc.push(e));(node.children||[]).forEach(c=>entries(c,acc));return acc}
+const st=(e,n)=>{const s=(e.stats||[]).find(x=>x.name===n);return s&&typeof s.value==='number'?s.value:0};
+const tables={};
+async function loadTables(sport){
+  if(tables[sport])return tables[sport];
+  const cached=lsGet(sport);if(cached)return tables[sport]=cached;
+  const S=SPORTS[sport];let map={};
+  if(S.type==='soccer'){
+    const res=await pool(LEAGUES,6,async([slug,name])=>{
+      const j=await getJSON(STAND+'soccer/'+slug+'/standings');
+      const id=(j.uid||'').match(/l:(\d+)/)?.[1];if(!id)return null;
+      const teams={};let gf=0,gp=0;
+      entries(j).forEach(e=>{const t={gp:st(e,'gamesPlayed'),gf:st(e,'pointsFor'),ga:st(e,'pointsAgainst'),rank:st(e,'rank')};teams[e.team.id]=t;gf+=t.gf;gp+=t.gp});
+      return{id,name,teams,avg:gp?gf/gp:1.35};
+    });
+    res.forEach(x=>{if(x)map[x.id]=x});
+  }else if(S.type==='tennis'){
+    await pool(['atp','wta'],2,async tour=>{
+      const j=await getJSON(SITE+'tennis/'+tour+'/rankings');
+      (j.rankings?.[0]?.ranks||[]).forEach(r=>{if(!r.athlete)return;const v={rank:r.current,points:r.points};map['#'+r.athlete.id]=v;map[(r.athlete.displayName||'').toLowerCase()]=v});
+    });
+  }else{
+    const j=await getJSON(STAND+S.path+'/standings');
+    entries(j).forEach(e=>{const w=st(e,'wins'),l=st(e,'losses');map[e.team.id]={w,l,gp:w+l+st(e,'ties')+st(e,'otLosses'),pf:st(e,'pointsFor'),pa:st(e,'pointsAgainst')}});
+  }
+  if(!Object.keys(map).length)throw new Error('Clasamentele nu au putut fi încărcate');
+  lsSet(sport,map);return tables[sport]=map;
+}
+const ymd=d=>d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+function dayDate(off){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+off);return d}
+async function loadEvents(sport,day){
+  const S=SPORTS[sport],base=dayDate(day),key=ymd(base);
+  if(S.type==='tennis'){
+    const rs=await pool(['atp','wta'],2,t=>getJSON(SITE+'tennis/'+t+'/scoreboard?dates='+key));
+    if(rs.every(r=>!r))throw new Error('Meciurile nu au putut fi încărcate');
+    const seen=new Set(),out=[];
+    rs.forEach((r,i)=>(r?.events||[]).forEach(e=>(e.groupings||[]).forEach(g=>{
+      if(!/singles$/.test(g.grouping?.slug||''))return;
+      (g.competitions||[]).forEach(c=>{if(seen.has(c.id))return;seen.add(c.id);if(c.status?.type?.state!=='pre')return;if(ymd(new Date(c.date))!==key)return;
+        out.push({id:c.id,date:c.date,tour:i?'WTA':'ATP',tournament:e.name,round:c.round?.displayName,timeValid:c.timeValid,competitors:c.competitors||[]})});
+    })));
+    return out;
+  }
+  const urls=[-1,0,1].map(o=>{const d=new Date(base);d.setDate(d.getDate()+o);return SITE+(S.type==='soccer'?'soccer/all':S.path)+'/scoreboard?dates='+ymd(d)+'&limit=1000'});
+  const rs=await pool(urls,3,u=>getJSON(u));
+  if(rs.every(r=>!r))throw new Error('Meciurile nu au putut fi încărcate');
+  const seen=new Set(),out=[];
+  rs.forEach(r=>(r?.events||[]).forEach(e=>{if(seen.has(e.id))return;seen.add(e.id);if(e.status?.type?.state!=='pre')return;if(ymd(new Date(e.date))!==key)return;out.push(e)}));
+  return out;
+}
+function pois(l,n){const a=[Math.exp(-l)];for(let k=1;k<=n;k++)a[k]=a[k-1]*l/k;return a}
+function soccerProbs(lh,la){
+  const N=10,H=pois(lh,N),A=pois(la,N);let p1=0,px=0,p2=0,o15=0,o25=0,o35=0,bt=0,tot=0;
+  for(let i=0;i<=N;i++)for(let j=0;j<=N;j++){const p=H[i]*A[j];tot+=p;if(i>j)p1+=p;else if(i===j)px+=p;else p2+=p;if(i+j>1)o15+=p;if(i+j>2)o25+=p;if(i+j>3)o35+=p;if(i&&j)bt+=p}
+  return{p1:p1/tot,px:px/tot,p2:p2/tot,o15:o15/tot,o25:o25/tot,o35:o35/tot,bt:bt/tot};
+}
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+function formScore(f){if(!f)return null;let p=0,n=0;for(const c of f.toUpperCase()){if(c==='W')p+=3;else if(c==='D')p+=1;else if(c!=='L')continue;n++}return n?p/(3*n):null}
+const formRo=f=>f?f.toUpperCase().replace(/W/g,'V').replace(/D/g,'E').replace(/L/g,'Î').split('').join('-'):'';
+function parseRec(c){const s=(c.records||[]).find(r=>r.type==='total')?.summary;const m=s&&s.match(/^(\d+)-(\d+)-(\d+)$/);if(!m)return null;const w=+m[1],d=+m[2],l=+m[3];return{w,d,l,gp:w+d+l}}
+function sides(e){const cs=e.competitions?.[0]?.competitors||[];return[cs.find(c=>c.homeAway==='home'),cs.find(c=>c.homeAway==='away')]}
+function baseMatch(e,h,a,league){return{id:e.id,date:new Date(e.date),league,home:{name:h.team.displayName,logo:h.team.logo},away:{name:a.team.displayName,logo:a.team.logo},markets:[],reasons:[],q:0}}
+function analyzeSoccer(e,T){
+  const[h,a]=sides(e);if(!h||!a||!h.team||!a.team)return null;
+  const L=T[(e.uid||'').match(/l:(\d+)/)?.[1]];
+  const m=baseMatch(e,h,a,L?L.name:'Altă competiție');m.kind='soccer';m.known=!!L;
+  const th=L?.teams[h.team.id],ta=L?.teams[a.team.id],fh=formScore(h.form),fa=formScore(a.form);
+  let lh,la;
+  if(th&&ta&&th.gp&&ta.gp){
+    const k=6,avg=L.avg,r=(g,gp)=>((g+k*avg)/(gp+k))/avg;
+    lh=avg*r(th.gf,th.gp)*r(ta.ga,ta.gp)*1.11*(fh==null?1:1+0.12*(fh-0.45));
+    la=avg*r(ta.gf,ta.gp)*r(th.ga,th.gp)*0.89*(fa==null?1:1+0.12*(fa-0.45));
+    const mg=Math.min(th.gp,ta.gp);m.q=mg>=8?2:mg>=4?1:0;
+    [[m.home.name,th,h],[m.away.name,ta,a]].forEach(([n,t,c])=>m.reasons.push(`${n}: locul ${t.rank||'–'} după ${t.gp} meciuri, ${num(t.gf/t.gp)} goluri marcate și ${num(t.ga/t.gp)} primite pe meci${c.form?', formă '+formRo(c.form):''}.`));
+  }else{
+    const rh=parseRec(h),ra=parseRec(a);
+    const s=(r,f)=>{if(!r&&f==null)return null;const ppg=r?(3*r.w+r.d+1.35*4)/(r.gp+4):null;return ppg==null?3*f:f==null?ppg:0.75*ppg+0.25*3*f};
+    const sh=s(rh,fh),sa=s(ra,fa);
+    if(sh==null||sa==null){m.reasons.push('Date insuficiente pentru o analiză.');return m}
+    const d=sh-sa;lh=1.5*Math.exp(0.4*d);la=1.15*Math.exp(-0.4*d);
+    m.q=(L&&rh&&ra&&Math.min(rh.gp,ra.gp)>=8)?1:0;m.limited=true;
+    [[m.home.name,rh,h],[m.away.name,ra,a]].forEach(([n,r,c])=>m.reasons.push(`${n}: ${r?`${r.w} victorii, ${r.d} egaluri, ${r.l} înfrângeri`:'fără bilanț'}${c.form?', formă '+formRo(c.form):''}.`));
+    m.reasons.push('Fără clasament cu goluri: analiză doar din bilanț și formă, deci mai puțin sigură.');
+  }
+  lh=clamp(lh,0.25,3.5);la=clamp(la,0.25,3.5);
+  const p=soccerProbs(lh,la);m.p=[p.p1,p.px,p.p2];
+  m.reasons.push(`Goluri estimate: ${num(lh)} – ${num(la)}.`);
+  const H=m.home.name,A=m.away.name;
+  m.markets=[['res','Victorie '+H,p.p1],['res','Egal',p.px],['res','Victorie '+A,p.p2],
+    ['dc',H+' sau egal (1X)',p.p1+p.px],['dc',A+' sau egal (X2)',p.px+p.p2],['dc','Fără egal (12)',p.p1+p.p2],
+    ['goals','Peste 2,5 goluri',p.o25],['goals','Sub 2,5 goluri',1-p.o25],['goals','Ambele marchează: da',p.bt],['goals','Ambele marchează: nu',1-p.bt],
+    ['goals','Peste 1,5 goluri',p.o15],['goals','Sub 3,5 goluri',1-p.o35]].map(([cat,label,pr],i)=>({cat,label,p:pr,i}));
+  return m;
+}
+function analyzeUS(e,T,S){
+  const[h,a]=sides(e);if(!h||!a||!h.team||!a.team)return null;
+  const m=baseMatch(e,h,a,S.label);m.kind='us';m.known=true;
+  const th=T[h.team.id],ta=T[a.team.id];
+  if(!th||!ta||!th.gp||!ta.gp){m.reasons.push('Date insuficiente pentru o analiză.');return m}
+  const r=t=>{const py=Math.pow(t.pf,S.exp)/(Math.pow(t.pf,S.exp)+Math.pow(t.pa,S.exp)||1);return clamp((py*t.gp+0.5*S.k)/(t.gp+S.k),0.03,0.97)};
+  const lg=x=>Math.log(x/(1-x)),ph=1/(1+Math.exp(-(lg(r(th))-lg(r(ta))+S.home)));
+  m.p=[ph,1-ph];const mg=Math.min(th.gp,ta.gp);m.q=mg>=S.k*2?2:mg>=S.k?1:0;
+  const rec=(c,t)=>(c.records||[]).find(x=>x.type===t)?.summary;
+  [[m.home.name,th,h,'home','acasă'],[m.away.name,ta,a,'road','în deplasare']].forEach(([n,t,c,ty,ro])=>m.reasons.push(`${n}: bilanț ${rec(c,'total')||t.w+'-'+t.l}${rec(c,ty)?`, ${ro} ${rec(c,ty)}`:''}, ${num(t.pf/t.gp,1)} ${S.unit} marcate și ${num(t.pa/t.gp,1)} primite pe meci.`));
+  m.reasons.push('Câștigătorul include prelungirile.');
+  m.markets=[{cat:'res',label:'Victorie '+m.home.name,p:ph,i:0},{cat:'res',label:'Victorie '+m.away.name,p:1-ph,i:1}];
+  return m;
+}
+function analyzeTennis(e,T){
+  const cs=[...e.competitors].sort((x,y)=>(x.order||0)-(y.order||0));
+  if(cs.length!==2||!cs[0].athlete||!cs[1].athlete)return null;
+  const nm=c=>c.athlete.displayName||c.athlete.fullName||'';
+  if(cs.some(c=>!nm(c)||nm(c)==='TBD'))return null;
+  const m={id:e.id,date:new Date(e.date),league:[e.tour,e.tournament,e.round].filter(Boolean).join(' · '),home:{name:nm(cs[0])},away:{name:nm(cs[1])},markets:[],reasons:[],q:0,kind:'us',known:true,noTime:e.timeValid===false};
+  const rk=cs.map(c=>T['#'+c.athlete.id]||T['#'+c.id]||T[nm(c).toLowerCase()]);
+  m.tags=rk.map(r=>r?'loc '+r.rank:'în afara top 150');m.legend=[m.home.name,m.away.name];
+  if(!rk[0]&&!rk[1]){m.reasons.push('Niciunul dintre jucători nu este în top 150 mondial: date insuficiente.');return m}
+  const pts=rk.map(r=>r?Math.max(r.points,1):250),ph=1/(1+Math.exp(-0.85*(Math.log(pts[0])-Math.log(pts[1]))));
+  m.p=[ph,1-ph];m.q=rk[0]&&rk[1]?1:0;
+  cs.forEach((c,i)=>m.reasons.push(rk[i]?`${nm(c)}: locul ${rk[i].rank} mondial, ${rk[i].points.toLocaleString('ro-RO')} puncte.`:`${nm(c)}: în afara top 150 mondial (estimare aproximativă).`));
+  m.reasons.push('Analiză doar din clasamentul mondial: nu ține cont de suprafață, formă sau meciuri directe.');
+  m.markets=[{cat:'res',label:'Victorie '+m.home.name,p:ph,i:0},{cat:'res',label:'Victorie '+m.away.name,p:1-ph,i:1}];
+  return m;
+}
+function pickFor(m){
+  if(!m.markets.length)return null;
+  const best=l=>l.reduce((x,y)=>!x||y.p>x.p?y:x,null),by=c=>m.markets.filter(k=>k.cat===c);
+  let pk=null;
+  if(state.cat==='smart'){
+    const w=best(by('res').filter(k=>k.label!=='Egal'));
+    if(w&&w.p>=0.6)pk=w;
+    else{const d=best(by('dc').filter(k=>!k.label.startsWith('Fără')));
+      if(d&&d.p>=0.75)pk=d;else{const g=best(by('goals').slice(0,4));if(g&&g.p>=0.6)pk=g;else if(m.kind==='us')pk=w}}
+  }else pk=best(by(state.cat));
+  return pk&&pk.p*100>=state.min?pk:null;
+}
+function conf(m,p){return p>=0.7&&m.q===2?['hi','Încredere ridicată']:p>=0.6&&m.q>=1?['mid','Încredere medie']:['low','Încredere scăzută']}
+function chips(id,items,cur,on){
+  $(id).innerHTML=items.map(([v,l])=>`<button class="chip" type="button" data-v="${esc(v)}" aria-pressed="${String(v)===String(cur)}">${esc(l)}</button>`).join('');
+  $(id).onclick=ev=>{const b=ev.target.closest('.chip');if(b)on(b.dataset.v)};
+}
+function controls(){
+  const soc=SPORTS[state.sport].type==='soccer';
+  if(!soc&&(state.cat==='dc'||state.cat==='goals'))state.cat='smart';
+  chips('sports',Object.entries(SPORTS).map(([k,s])=>[k,s.label]),state.sport,v=>{state.sport=v;refresh()});
+  chips('days',Array.from({length:7},(_,i)=>[i,i===0?'Azi':i===1?'Mâine':dayDate(i).toLocaleDateString('ro-RO',{weekday:'short',day:'numeric',month:'short'})]),state.day,v=>{state.day=+v;refresh()});
+  chips('cats',soc?[['smart','Recomandate'],['res','Rezultat final'],['dc','Șansă dublă'],['goals','Goluri']]:[['smart','Recomandate'],['res','Câștigător']],state.cat,v=>{state.cat=v;controls();draw()});
+  chips('mins',[[55,'55%'],[60,'60%'],[70,'70%'],[80,'80%']],state.min,v=>{state.min=+v;controls();draw()});
+  chips('sorts',[['p','După probabilitate'],['t','După oră']],state.sort,v=>{state.sort=v;controls();draw()});
+  $('othersRow').style.display=soc?'':'none';
+}
+let current=[],token=0;
+async function refresh(){
+  controls();const my=++token;
+  $('summary').textContent='';$('list').innerHTML='<div class="state">Se încarcă meciurile și clasamentele…</div>';
+  try{
+    const S=SPORTS[state.sport],[T,ev]=await Promise.all([loadTables(state.sport),loadEvents(state.sport,state.day)]);
+    if(my!==token)return;
+    current=ev.map(e=>S.type==='soccer'?analyzeSoccer(e,T):S.type==='tennis'?analyzeTennis(e,T):analyzeUS(e,T,S)).filter(Boolean);draw();
+  }catch(err){
+    if(my!==token)return;
+    $('list').innerHTML=`<div class="state">Datele nu au putut fi încărcate. Verifică conexiunea la internet și încearcă din nou.<br><button class="btn" type="button" id="retry">Încearcă din nou</button></div>`;
+    $('retry').onclick=refresh;
+  }
+}
+function logo(t){return t.logo?`<img src="${esc(t.logo)}" alt="" loading="lazy" onerror="this.remove()">`:''}
+function draw(){
+  const pool0=current.filter(m=>state.others||m.known);
+  const rows=pool0.map(m=>({m,pk:pickFor(m)})).filter(x=>x.pk);
+  rows.sort((x,y)=>state.sort==='p'?y.pk.p-x.pk.p||x.m.date-y.m.date:x.m.date-y.m.date||y.pk.p-x.pk.p);
+  $('summary').textContent=`${pool0.length} meciuri analizate · ${rows.length} sugestii peste ${state.min}%`;
+  if(!rows.length){$('list').innerHTML=`<div class="state">${pool0.length?'Nicio sugestie la acest prag. Alege o probabilitate minimă mai mică sau alt tip de sugestie.':(state.sport==='tennis'?'Niciun meci de simplu programat încă pentru această zi. Programul de tenis apare de obicei cu o zi înainte.':'Niciun meci programat în această zi.')}</div>`;return}
+  $('list').innerHTML=rows.map(({m,pk})=>{
+    const[cl,ct]=conf(m,pk.p),t=m.noTime?'oră neconfirmată':m.date.toLocaleTimeString('ro-RO',{hour:'2-digit',minute:'2-digit'});
+    const bar=m.kind==='soccer'
+      ?`<div class="bar"><span class="b1" style="width:${m.p[0]*100}%">${pc(m.p[0])}</span><span class="b2" style="width:${m.p[1]*100}%">${pc(m.p[1])}</span><span class="b3" style="width:${m.p[2]*100}%">${pc(m.p[2])}</span></div><div class="legend"><span>1 gazde</span><span>X egal</span><span>2 oaspeți</span></div>`
+      :`<div class="bar"><span class="b1" style="width:${m.p[0]*100}%">${pc(m.p[0])}</span><span class="b3" style="width:${m.p[1]*100}%">${pc(m.p[1])}</span></div><div class="legend"><span>${esc(m.legend?.[0]||'Gazde')}</span><span>${esc(m.legend?.[1]||'Oaspeți')}</span></div>`;
+    const groups=m.kind==='soccer'?[['res','Rezultat final'],['dc','Șansă dublă'],['goals','Goluri']]:[['res','Câștigător']];
+    const mk=groups.map(([c,l])=>`<h4>${l}</h4>`+m.markets.filter(k=>k.cat===c).map(k=>`<dt>${esc(k.label)}</dt><dd>${pc(k.p)}</dd>`).join('')).join('');
+    return `<article class="card"><div class="meta"><span>${esc(m.league)}</span><span>${t}</span></div>
+<div class="teams"><div class="team">${logo(m.home)}<span>${esc(m.home.name)}</span><span class="tag">${esc(m.tags?.[0]||'gazde')}</span></div><div class="team">${logo(m.away)}<span>${esc(m.away.name)}</span><span class="tag">${esc(m.tags?.[1]||'oaspeți')}</span></div></div>
+${bar}
+<div class="pick"><div class="txt"><span class="lbl">Sugestie</span><strong>${esc(pk.label)}</strong><span class="badge ${cl}">${ct}</span></div><div class="pct">${pc(pk.p)}</div></div>
+<details><summary>Detalii analiză</summary><ul class="why">${m.reasons.map(r=>`<li>${esc(r)}</li>`).join('')}</ul><dl class="mk">${mk}</dl></details></article>`}).join('');
+}
+$('others').onchange=e=>{state.others=e.target.checked;draw()};
+refresh();
+</script>
+</body>
+</html>
